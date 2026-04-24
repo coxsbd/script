@@ -1,19 +1,26 @@
+#!/usr/bin/env python3
+# encoding: utf-8
+
 import socket, threading, thread, select, signal, sys, time, getopt
 
-# Listen
+# Python Proxy ou Socks
+
+# Porta do Proxy
+proxyport = 8002
+
+# CONFIG
 LISTENING_ADDR = '0.0.0.0'
-if sys.argv[1:]:
-  LISTENING_PORT = sys.argv[1]
-else:
-  LISTENING_PORT = 8002 
-#Pass
+LISTENING_PORT = proxyport
+
 PASS = ''
 
 # CONST
 BUFLEN = 4096 * 4
 TIMEOUT = 60
-DEFAULT_HOST = '127.0.0.1:446'
-RESPONSE = 'HTTP/1.1 101 <font color="red">Dexter Eskalarte</font>\r\n\r\nContent-Length: 104857600000\r\n\r\n'
+DEFAULT_HOST = '127.0.0.1:445'
+RESPONSE = 'HTTP/1.1 101 <font color="green">Secure Proxy</font>\r\n\r\n'
+#RESPONSE = 'HTTP/1.1 200 Hello_World!\r\nContent-length: 0\r\n\r\nHTTP/1.1 200 Connection established\r\n\r\n'  # lint:ok
+
 
 class Server(threading.Thread):
     def __init__(self, host, port):
@@ -29,8 +36,7 @@ class Server(threading.Thread):
         self.soc = socket.socket(socket.AF_INET)
         self.soc.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.soc.settimeout(2)
-        intport = int(self.port)
-        self.soc.bind((self.host, intport))
+        self.soc.bind((self.host, self.port))
         self.soc.listen(0)
         self.running = True
 
@@ -169,9 +175,9 @@ class ConnectionHandler(threading.Thread):
             host = host[:i]
         else:
             if self.method=='CONNECT':
-                port = 446
+                port = 443
             else:
-                port = sys.argv[1]
+                port = 80
 
         (soc_family, soc_type, proto, _, address) = socket.getaddrinfo(host, port)[0]
 
@@ -218,6 +224,7 @@ class ConnectionHandler(threading.Thread):
                         break
             if count == TIMEOUT:
                 error = True
+
             if error:
                 break
 
@@ -230,7 +237,7 @@ def print_usage():
 def parse_args(argv):
     global LISTENING_ADDR
     global LISTENING_PORT
-    
+
     try:
         opts, args = getopt.getopt(argv,"hb:p:",["bind=","port="])
     except getopt.GetoptError:
@@ -247,20 +254,17 @@ def parse_args(argv):
 
 
 def main(host=LISTENING_ADDR, port=LISTENING_PORT):
-    print "\n:-------PythonProxy-------:\n"
-    print "Listening addr: " + LISTENING_ADDR
-    print "Listening port: " + str(LISTENING_PORT) + "\n"
-    print ":-------------------------:\n"
     server = Server(LISTENING_ADDR, LISTENING_PORT)
     server.start()
+
     while True:
         try:
             time.sleep(2)
         except KeyboardInterrupt:
-            print 'Stopping...'
+            print '\033[31m'+'----PARANDO'+'\033[0;0m'
             server.close()
             break
 
-#######    parse_args(sys.argv[1:])
 if __name__ == '__main__':
+    parse_args(sys.argv[1:])
     main()
