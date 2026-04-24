@@ -1,18 +1,85 @@
 {
-  "listen": ":5666",
-  "cert": "/etc/openvpn/easy-rsa/keys/server.crt",
-  "key": "/etc/openvpn/easy-rsa/keys/server.key",
-  "up_mbps": 100,
-  "down_mbps": 100,
-  "disable_udp": false,
-  "obfs": "coxsbd",
-  "auth": {
-    "mode": "external",
-    "config": {
-    "cmd": "./.auth.sh"
-    }
-  },
-  "prometheus_listen": ":5665",
-  "recv_window_conn": 107374182400,
-  "recv_window_client": 13421772800
+    "log": {
+        "access": "/var/log/xray/access.log",
+        "error": "/var/log/xray/error.log",
+        "loglevel": "warning"
+    },
+    "inbounds": [
+        {
+            "port": 442,
+            "protocol": "vless",
+            "settings": {
+                "clients": [
+                    {
+                        "id": "15510872-a989-40f0-bf94-ea1f4e952eec",
+                        "flow": "xtls-rprx-direct"
+                    }
+                ],
+                "decryption": "none",
+                "fallbacks": [
+                    {
+                        "dest": 60000,
+                        "alpn": "",
+                        "xver": 1
+                    },
+                    {
+                        "dest": 60001,
+                        "alpn": "h2",
+                        "xver": 1
+                    },
+                    {
+                        "dest": 60002,
+                        "path": "/firenet/",
+                        "xver": 1
+                    }
+                ]
+            },
+            "streamSettings": {
+                "network": "tcp",
+                "security": "xtls",
+                "xtlsSettings": {
+                    "minVersion": "1.2",
+                    "certificates": [
+                        {
+                            "certificateFile": "/ssl/xray.crt",
+                            "keyFile": "/ssl/xray.key"
+                        }
+                    ]
+                }
+            },
+            "sniffing": {
+                "enabled": true,
+                "destOverride": [
+                    "http",
+                    "tls"
+                ]
+            }
+        },
+        {
+            "port": 60002,
+            "listen": "127.0.0.1",
+            "protocol": "vless",
+            "settings": {
+                "clients": [
+                    {
+                        "id": "15510872-a989-40f0-bf94-ea1f4e952eec"
+                    }
+                ],
+                "decryption": "none"
+            },
+            "streamSettings": {
+                "network": "ws",
+                "security": "none",
+                "wsSettings": {
+                    "acceptProxyProtocol": true,
+                    "path": "/firenet/"
+                }
+            }
+        }
+    ],
+    "outbounds": [
+        {
+            "protocol": "freedom"
+        }
+    ]
 }
