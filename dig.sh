@@ -3,8 +3,8 @@
 ## Script to keep-alive your DNSTT server domain record query from target resolver/local dns server
 
 ## Your DNSTT Nameserver & your Domain A Record
-NS='DOMAIN_LENZ'
-A='HOSTNAME_LENZ'
+NS='DOMAIN_TK403'
+A='HOSTNAME_TK403'
 ## Repeat dig cmd loop time (seconds) (positive interger only)
 LOOP_DELAY=5
 
